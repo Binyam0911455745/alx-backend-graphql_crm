@@ -129,3 +129,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GRAPHENE = {
     'SCHEMA': 'graphql_crm.schema.schema'
 }
+
+CRONJOBS = [
+    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),        # Every 5 minutes
+    ('0 */12 * * *', 'crm.cron.update_low_stock'),        # Every 12 hours
+]

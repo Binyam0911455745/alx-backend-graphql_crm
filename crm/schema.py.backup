@@ -377,9 +377,6 @@ class Query(graphene.ObjectType):
         order_by=graphene.String()
     )
 
-    # Custom query to get products with stock < 10
-    low_stock_products = graphene.List(ProductType)
-    
     def resolve_hello(self, info):
         return "Hello, GraphQL!"
 
@@ -467,4 +464,4 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
-    update_low_stock_products = UpdateLowStockProducts.Field() 
+    update_low_stock_products = UpdateLowStockProducts.Field()

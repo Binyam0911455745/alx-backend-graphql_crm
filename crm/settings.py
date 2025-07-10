@@ -133,5 +133,6 @@ GRAPHENE = {
 
 # Django-crontab Configuration
 CRONJOBS = [
-    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
+    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),        # Every 5 minutes
+    ('0 */12 * * *', 'crm.cron.updatelowstock'),          # Every 12 hours
 ]
