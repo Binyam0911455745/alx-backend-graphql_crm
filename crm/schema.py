@@ -1,4 +1,5 @@
 import graphene
+from django.db.models import F
 from graphene_django import DjangoObjectType
 from graphene import relay
 from django.db import transaction
@@ -76,7 +77,7 @@ class CreateCustomer(graphene.Mutation):
                 email=input.email,
                 phone=input.phone or ''
             )
-            customer.save()  # explicitly called
+            customer.save()
             return CreateCustomer(customer=customer, message="Customer created successfully.")
         except ValidationError:
             raise GraphQLError("Invalid email format.")
@@ -106,7 +107,7 @@ class BulkCreateCustomers(graphene.Mutation):
                         email=cust.email,
                         phone=cust.phone or ''
                     )
-                    customer.save()  # explicitly called
+                    customer.save()
                     created.append(customer)
                 except ValidationError:
                     errors.append(f"Entry {i + 1}: Invalid email format.")
@@ -134,7 +135,7 @@ class CreateProduct(graphene.Mutation):
                 price=input.price,
                 stock=input.stock
             )
-            product.save()  # explicitly called
+            product.save()
             return CreateProduct(product=product)
         except Exception as e:
             raise GraphQLError(str(e))
@@ -165,11 +166,36 @@ class CreateOrder(graphene.Mutation):
             order_date=input.order_date or timezone.now(),
             total_amount=total_amount
         )
-        order.save()  # explicitly called
+        order.save()
         order.products.set(products)
 
         return CreateOrder(order=order)
 
+
+# This is the new mutation to add
+class UpdateLowStockProducts(graphene.Mutation):
+    class Arguments:
+        # We don't need any arguments for this mutation
+        pass
+
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    def mutate(root, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated_count = low_stock_products.count()
+
+        if updated_count > 0:
+            # Increment stock by 10 for all low-stock products
+            low_stock_products.update(stock=F('stock') + 10)
+            message = f"Successfully updated stock for {updated_count} products."
+        else:
+            message = "No products with low stock found."
+
+        return UpdateLowStockProducts(
+            updated_products=Product.objects.filter(stock__lt=20, stock__gt=9),
+            message=message
+        )
 
 # ==============================
 # Main Mutation & Query classes
@@ -180,6 +206,8 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+    # This is the new field to add to your Mutation class
+    update_low_stock_products = UpdateLowStockProducts.Field()
 
 
 class Query(graphene.ObjectType):
